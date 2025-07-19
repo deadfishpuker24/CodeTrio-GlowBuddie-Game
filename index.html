@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Glow Buddies - Inclusive</title>
+<title>Glow Buddies - Inclusive & Fun</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -14,9 +14,8 @@ body { font-family: 'Quicksand', sans-serif; transition: background-color 0.5s e
   display: flex; align-items: center; justify-content: center;
   font-size: 2rem; font-weight: bold; color: #000;
 }
-.grove-element:hover { transform: scale(1.05); }
 .active-glow { box-shadow: 0 0 25px 10px var(--glow-color, #fff); transform: scale(1.1); }
-.theme-light { --bg-color: #f0f9ff; }
+.theme-light { --bg-color: #f0f9ff; color: #000; }
 .theme-dark { --bg-color: #0c1427; color: #fff; }
 .bg-custom { background-color: var(--bg-color); }
 </style>
@@ -26,34 +25,40 @@ body { font-family: 'Quicksand', sans-serif; transition: background-color 0.5s e
 
 <div class="text-center p-4">
 <h1 class="text-4xl font-bold">Glow Buddies</h1>
-<p class="mt-1 text-lg">🌈 Memory Game with Fun & Accessibility</p>
+<p class="mt-1 text-lg">🌈 Memory Game — Inclusive & Fun</p>
 
 <div id="status" class="my-4 text-xl">Press Start to begin</div>
 <button id="start" class="bg-blue-500 text-white px-4 py-2 rounded shadow">Start</button>
 
-<div class="grid grid-cols-2 gap-4 max-w-sm mx-auto my-6">
+<div class="grid grid-cols-2 gap-4 max-w-sm mx-auto my-6" role="application" aria-label="Glow pattern buttons">
   <div id="e1" data-id="1" class="grove-element rounded-full bg-yellow-300">A</div>
   <div id="e2" data-id="2" class="grove-element rounded-full bg-green-300">B</div>
   <div id="e3" data-id="3" class="grove-element rounded-full bg-pink-300">C</div>
   <div id="e4" data-id="4" class="grove-element rounded-full bg-purple-300">D</div>
 </div>
 
-<button id="theme" class="bg-gray-300 px-3 py-1 rounded">Switch Theme</button>
+<div class="flex gap-2 mt-4">
+  <button id="theme" class="bg-gray-300 px-3 py-1 rounded">High Contrast</button>
+  <button id="audio" class="bg-gray-300 px-3 py-1 rounded">Sound: On</button>
+  <button id="calm" class="bg-gray-300 px-3 py-1 rounded">Calm Mode</button>
+</div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
 <script>
 const startBtn = document.getElementById('start');
 const statusBox = document.getElementById('status');
 const elements = document.querySelectorAll('.grove-element');
 const themeBtn = document.getElementById('theme');
+const audioBtn = document.getElementById('audio');
+const calmBtn = document.getElementById('calm');
 const body = document.getElementById('body');
 
 let sequence = [], playerSeq = [], level = 0, stars = 0, playing = false;
+let soundOn = true, calmMode = false;
 const notes = ['C4','E4','G4','B4'];
 const synths = notes.map(n => new Tone.Synth().toDestination());
-const themes = [['🐱','🐶','🐰','🦊'],['🍎','🍌','🍇','🍊'],['🌞','🌛','⭐️','🌈']];
-let themeIndex = 0;
+const skins = [['🐱','🐶','🐰','🦊'],['🍎','🍌','🍇','🍊'],['⭐️','🌙','☁️','🌈']];
+let skinIndex = 0;
 
 function updateStatus(txt) {
   statusBox.textContent = `⭐ ${stars} | ${txt}`;
@@ -67,17 +72,18 @@ async function startGame() {
 
 function nextLevel() {
   level++; stars += 10; playerSeq = [];
-  updateStatus(`Level ${level} - Your turn`);
+  updateStatus(`Level ${level} — Your turn`);
   sequence.push(Math.floor(Math.random()*4)+1);
   playSeq();
 }
 
 async function playSeq() {
   playing = false;
-  updateStatus(`Level ${level} - Watch`);
+  updateStatus(`Level ${level} — Watch`);
+  await sleep(calmMode ? 1200 : 600);
   for (let i of sequence) {
     await glow(i);
-    await sleep(300);
+    await sleep(calmMode ? 800 : 300);
   }
   playing = true;
 }
@@ -86,8 +92,8 @@ function glow(id) {
   return new Promise(res => {
     const el = document.querySelector(`#e${id}`);
     el.classList.add('active-glow');
-    synths[id-1].triggerAttackRelease(notes[id-1],'8n');
-    setTimeout(() => { el.classList.remove('active-glow'); res(); }, 500);
+    if (soundOn) synths[id-1].triggerAttackRelease(notes[id-1],'8n');
+    setTimeout(() => { el.classList.remove('active-glow'); res(); }, calmMode ? 700 : 400);
   });
 }
 
@@ -101,7 +107,7 @@ elements.forEach(el => el.addEventListener('click', e => {
     return;
   }
   if (playerSeq.length === sequence.length) {
-    setTimeout(nextLevel, 500);
+    setTimeout(nextLevel, calmMode ? 1500 : 500);
   }
 }));
 
@@ -112,15 +118,23 @@ function gameOver() {
 }
 
 themeBtn.addEventListener('click', () => {
-  themeIndex = (themeIndex+1)%themes.length;
-  elements.forEach((el,i) => el.textContent = themes[themeIndex][i]);
   body.classList.toggle('theme-light');
   body.classList.toggle('theme-dark');
 });
 
-function sleep(ms) { return new Promise(r => setTimeout(r,ms)); }
+audioBtn.addEventListener('click', () => {
+  soundOn = !soundOn;
+  audioBtn.textContent = soundOn ? 'Sound: On' : 'Sound: Off';
+});
+
+calmBtn.addEventListener('click', () => {
+  calmMode = !calmMode;
+  calmBtn.textContent = calmMode ? 'Calm Mode: On' : 'Calm Mode';
+});
 
 startBtn.addEventListener('click', () => Tone.start().then(startGame));
+
+function sleep(ms) { return new Promise(r => setTimeout(r,ms)); }
 </script>
 </body>
 </html>
