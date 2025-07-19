@@ -3,138 +3,185 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Glow Buddies - Inclusive & Fun</title>
+<title>Glow Buddies — Inclusive & Themed</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap" rel="stylesheet" />
 <style>
-body { font-family: 'Quicksand', sans-serif; transition: background-color 0.5s ease; }
-.grove-element {
-  cursor: pointer; transition: transform 0.2s ease, box-shadow 0.3s ease;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 2rem; font-weight: bold; color: #000;
-}
-.active-glow { box-shadow: 0 0 25px 10px var(--glow-color, #fff); transform: scale(1.1); }
-.theme-light { --bg-color: #f0f9ff; color: #000; }
-.theme-dark { --bg-color: #0c1427; color: #fff; }
-.bg-custom { background-color: var(--bg-color); }
+  body {
+    font-family: 'Quicksand', sans-serif;
+    transition: background 0.5s ease;
+  }
+  .game-tile {
+    cursor: pointer;
+    font-size: 2.2rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+  }
+  .game-tile:hover {
+    transform: scale(1.05);
+  }
+  .active-glow {
+    box-shadow: 0 0 20px 5px #6ee7b7;
+    transform: scale(1.1);
+  }
+  .high-contrast .game-tile {
+    background: #000;
+    color: #fff;
+  }
+  .theme-grass {
+    background: url('https://images.unsplash.com/photo-1601233744376-9b2f5b61e91a?&w=1600&q=80') center/cover no-repeat;
+  }
+  .theme-space {
+    background: url('https://images.unsplash.com/photo-1454789548928-9efd52dc4031?&w=1600&q=80') center/cover no-repeat;
+  }
+  .theme-beach {
+    background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?&w=1600&q=80') center/cover no-repeat;
+  }
+  .theme-fruit {
+    background: url('https://images.unsplash.com/photo-1560807707-8cc77767d783?&w=1600&q=80') center/cover no-repeat;
+  }
 </style>
 </head>
+<body class="theme-grass flex items-center justify-center min-h-screen">
+<div class="max-w-2xl p-4 w-full text-center">
+  <h1 class="text-4xl font-bold mb-2">🌟 Glow Buddies</h1>
+  <p class="mb-4 text-lg">Memory Game — Inclusive & Themed</p>
 
-<body id="body" class="theme-light bg-custom flex flex-col items-center justify-center min-h-screen">
+  <div class="mb-4 space-x-2">
+    <button id="startBtn" class="px-4 py-2 bg-green-500 text-white rounded">Start</button>
+    <select id="themeSelect" class="px-2 py-1 rounded border">
+      <option value="grass">🌾 Grass</option>
+      <option value="space">🌌 Space</option>
+      <option value="beach">🏖️ Beach</option>
+      <option value="fruit">🍉 Fruit</option>
+    </select>
+    <button id="contrastBtn" class="px-2 py-1 bg-gray-300 rounded">Contrast</button>
+    <button id="soundBtn" class="px-2 py-1 bg-gray-300 rounded">Sound: On</button>
+    <button id="calmBtn" class="px-2 py-1 bg-gray-300 rounded">Calm: Off</button>
+  </div>
 
-<div class="text-center p-4">
-<h1 class="text-4xl font-bold">Glow Buddies</h1>
-<p class="mt-1 text-lg">🌈 Memory Game — Inclusive & Fun</p>
+  <div id="message" class="mb-4 text-xl"></div>
 
-<div id="status" class="my-4 text-xl">Press Start to begin</div>
-<button id="start" class="bg-blue-500 text-white px-4 py-2 rounded shadow">Start</button>
-
-<div class="grid grid-cols-2 gap-4 max-w-sm mx-auto my-6" role="application" aria-label="Glow pattern buttons">
-  <div id="e1" data-id="1" class="grove-element rounded-full bg-yellow-300">A</div>
-  <div id="e2" data-id="2" class="grove-element rounded-full bg-green-300">B</div>
-  <div id="e3" data-id="3" class="grove-element rounded-full bg-pink-300">C</div>
-  <div id="e4" data-id="4" class="grove-element rounded-full bg-purple-300">D</div>
-</div>
-
-<div class="flex gap-2 mt-4">
-  <button id="theme" class="bg-gray-300 px-3 py-1 rounded">High Contrast</button>
-  <button id="audio" class="bg-gray-300 px-3 py-1 rounded">Sound: On</button>
-  <button id="calm" class="bg-gray-300 px-3 py-1 rounded">Calm Mode</button>
-</div>
+  <div id="board" class="grid grid-cols-2 gap-4 max-w-md mx-auto">
+    <div class="game-tile" data-id="0">🐶</div>
+    <div class="game-tile" data-id="1">🐱</div>
+    <div class="game-tile" data-id="2">🐰</div>
+    <div class="game-tile" data-id="3">🦊</div>
+  </div>
 </div>
 
 <script>
-const startBtn = document.getElementById('start');
-const statusBox = document.getElementById('status');
-const elements = document.querySelectorAll('.grove-element');
-const themeBtn = document.getElementById('theme');
-const audioBtn = document.getElementById('audio');
-const calmBtn = document.getElementById('calm');
-const body = document.getElementById('body');
+const startBtn = document.getElementById('startBtn');
+const board = document.getElementById('board');
+const message = document.getElementById('message');
+const tiles = document.querySelectorAll('.game-tile');
+const themeSelect = document.getElementById('themeSelect');
+const contrastBtn = document.getElementById('contrastBtn');
+const soundBtn = document.getElementById('soundBtn');
+const calmBtn = document.getElementById('calmBtn');
+const body = document.body;
 
-let sequence = [], playerSeq = [], level = 0, stars = 0, playing = false;
+const sounds = ['C4', 'E4', 'G4', 'B4'];
+let sequence = [], playerSequence = [], level = 0, turn = false;
 let soundOn = true, calmMode = false;
-const notes = ['C4','E4','G4','B4'];
-const synths = notes.map(n => new Tone.Synth().toDestination());
-const skins = [['🐱','🐶','🐰','🦊'],['🍎','🍌','🍇','🍊'],['⭐️','🌙','☁️','🌈']];
-let skinIndex = 0;
 
-function updateStatus(txt) {
-  statusBox.textContent = `⭐ ${stars} | ${txt}`;
-}
+const synths = [new Tone.Synth().toDestination(), new Tone.Synth().toDestination(),
+  new Tone.Synth().toDestination(), new Tone.Synth().toDestination()];
 
-async function startGame() {
-  level = 0; stars = 0; sequence = []; playing = true;
-  startBtn.disabled = true;
-  nextLevel();
-}
+const themes = {
+  grass: ['🐶', '🐱', '🐰', '🦊'],
+  space: ['🪐', '👽', '🚀', '🌟'],
+  beach: ['🐚', '🦀', '🏝️', '🌊'],
+  fruit: ['🍎', '🍌', '🍇', '🍉']
+};
 
-function nextLevel() {
-  level++; stars += 10; playerSeq = [];
-  updateStatus(`Level ${level} — Your turn`);
-  sequence.push(Math.floor(Math.random()*4)+1);
-  playSeq();
-}
-
-async function playSeq() {
-  playing = false;
-  updateStatus(`Level ${level} — Watch`);
-  await sleep(calmMode ? 1200 : 600);
-  for (let i of sequence) {
-    await glow(i);
-    await sleep(calmMode ? 800 : 300);
-  }
-  playing = true;
-}
-
-function glow(id) {
-  return new Promise(res => {
-    const el = document.querySelector(`#e${id}`);
-    el.classList.add('active-glow');
-    if (soundOn) synths[id-1].triggerAttackRelease(notes[id-1],'8n');
-    setTimeout(() => { el.classList.remove('active-glow'); res(); }, calmMode ? 700 : 400);
-  });
-}
-
-elements.forEach(el => el.addEventListener('click', e => {
-  if (!playing) return;
-  const id = parseInt(e.target.dataset.id);
-  glow(id);
-  playerSeq.push(id);
-  if (playerSeq[playerSeq.length-1] !== sequence[playerSeq.length-1]) {
-    gameOver();
-    return;
-  }
-  if (playerSeq.length === sequence.length) {
-    setTimeout(nextLevel, calmMode ? 1500 : 500);
-  }
-}));
-
-function gameOver() {
-  updateStatus(`Game Over! Final ⭐: ${stars}`);
-  startBtn.disabled = false;
-  playing = false;
-}
-
-themeBtn.addEventListener('click', () => {
-  body.classList.toggle('theme-light');
-  body.classList.toggle('theme-dark');
+themeSelect.addEventListener('change', () => {
+  const theme = themeSelect.value;
+  body.className = `theme-${theme} flex items-center justify-center min-h-screen`;
+  tiles.forEach((tile, i) => tile.textContent = themes[theme][i]);
 });
 
-audioBtn.addEventListener('click', () => {
+contrastBtn.addEventListener('click', () => {
+  body.classList.toggle('high-contrast');
+});
+
+soundBtn.addEventListener('click', () => {
   soundOn = !soundOn;
-  audioBtn.textContent = soundOn ? 'Sound: On' : 'Sound: Off';
+  soundBtn.textContent = `Sound: ${soundOn ? 'On' : 'Off'}`;
 });
 
 calmBtn.addEventListener('click', () => {
   calmMode = !calmMode;
-  calmBtn.textContent = calmMode ? 'Calm Mode: On' : 'Calm Mode';
+  calmBtn.textContent = `Calm: ${calmMode ? 'On' : 'Off'}`;
 });
 
-startBtn.addEventListener('click', () => Tone.start().then(startGame));
+function sleep(ms) {
+  return new Promise(res => setTimeout(res, ms));
+}
 
-function sleep(ms) { return new Promise(r => setTimeout(r,ms)); }
+async function startGame() {
+  sequence = [];
+  level = 0;
+  startBtn.disabled = true;
+  nextLevel();
+}
+
+async function nextLevel() {
+  turn = false;
+  playerSequence = [];
+  level++;
+  message.textContent = `Level ${level}`;
+  sequence.push(Math.floor(Math.random() * 4));
+  await playSequence();
+  turn = true;
+  message.textContent = `Your turn!`;
+}
+
+async function playSequence() {
+  for (const idx of sequence) {
+    await glowTile(idx);
+    await sleep(calmMode ? 600 : 300);
+  }
+}
+
+async function glowTile(idx) {
+  tiles[idx].classList.add('active-glow');
+  if (soundOn) synths[idx].triggerAttackRelease(sounds[idx], '8n');
+  await sleep(calmMode ? 700 : 400);
+  tiles[idx].classList.remove('active-glow');
+}
+
+board.addEventListener('click', async (e) => {
+  if (!turn) return;
+  const id = parseInt(e.target.dataset.id);
+  if (isNaN(id)) return;
+
+  await glowTile(id);
+  playerSequence.push(id);
+
+  const i = playerSequence.length - 1;
+  if (playerSequence[i] !== sequence[i]) {
+    message.textContent = 'Wrong! Try again!';
+    startBtn.disabled = false;
+    turn = false;
+    return;
+  }
+
+  if (playerSequence.length === sequence.length) {
+    await sleep(500);
+    nextLevel();
+  }
+});
+
+startBtn.addEventListener('click', () => {
+  Tone.start();
+  startGame();
+});
 </script>
 </body>
 </html>
