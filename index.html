@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Glow Buddies — Inclusive & Themed</title>
+<title>Glow Buddies — Inclusive v2</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap" rel="stylesheet" />
@@ -14,64 +14,65 @@
   }
   .game-tile {
     cursor: pointer;
-    font-size: 2.2rem;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 1rem;
+    font-size: 2rem;
+    background: rgba(255,255,255,0.8);
+    border-radius: 0.75rem;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
   }
   .game-tile:hover {
     transform: scale(1.05);
   }
   .active-glow {
-    box-shadow: 0 0 20px 5px #6ee7b7;
+    box-shadow: 0 0 30px 10px rgba(255, 255, 255, 0.7);
     transform: scale(1.1);
   }
-  .high-contrast .game-tile {
-    background: #000;
-    color: #fff;
+  .high-contrast {
+    filter: contrast(1.8) brightness(1.2);
   }
-  .theme-grass {
-    background: url('https://images.unsplash.com/photo-1601233744376-9b2f5b61e91a?&w=1600&q=80') center/cover no-repeat;
+  .bg-grass {
+    background: linear-gradient(#a7f3d0, #34d399);
   }
-  .theme-space {
-    background: url('https://images.unsplash.com/photo-1454789548928-9efd52dc4031?&w=1600&q=80') center/cover no-repeat;
+  .bg-space {
+    background: linear-gradient(#0f172a, #1e40af);
   }
-  .theme-beach {
-    background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?&w=1600&q=80') center/cover no-repeat;
+  .bg-beach {
+    background: linear-gradient(#fde68a, #fcd34d);
   }
-  .theme-fruit {
-    background: url('https://images.unsplash.com/photo-1560807707-8cc77767d783?&w=1600&q=80') center/cover no-repeat;
+  .bg-fruit {
+    background: linear-gradient(#fca5a5, #f87171);
   }
 </style>
 </head>
-<body class="theme-grass flex items-center justify-center min-h-screen">
-<div class="max-w-2xl p-4 w-full text-center">
+<body class="bg-grass flex items-center justify-center min-h-screen">
+<div class="max-w-xl p-4 w-full text-center text-white">
   <h1 class="text-4xl font-bold mb-2">🌟 Glow Buddies</h1>
-  <p class="mb-4 text-lg">Memory Game — Inclusive & Themed</p>
+  <p class="mb-4 text-lg">Inclusive Memory Game — with Themes, Rewards & Aids</p>
 
-  <div class="mb-4 space-x-2">
-    <button id="startBtn" class="px-4 py-2 bg-green-500 text-white rounded">Start</button>
-    <select id="themeSelect" class="px-2 py-1 rounded border">
+  <div class="mb-4 space-x-1 text-sm">
+    <button id="startBtn" class="px-2 py-1 bg-green-500 rounded">Start</button>
+    <select id="themeSelect" class="px-1 py-1 rounded text-black">
       <option value="grass">🌾 Grass</option>
       <option value="space">🌌 Space</option>
       <option value="beach">🏖️ Beach</option>
       <option value="fruit">🍉 Fruit</option>
     </select>
-    <button id="contrastBtn" class="px-2 py-1 bg-gray-300 rounded">Contrast</button>
-    <button id="soundBtn" class="px-2 py-1 bg-gray-300 rounded">Sound: On</button>
-    <button id="calmBtn" class="px-2 py-1 bg-gray-300 rounded">Calm: Off</button>
+    <button id="contrastBtn" class="px-1 py-1 bg-gray-200 text-black rounded">Contrast</button>
+    <button id="soundBtn" class="px-1 py-1 bg-gray-200 text-black rounded">Sound: On</button>
+    <button id="calmBtn" class="px-1 py-1 bg-gray-200 text-black rounded">Calm: Off</button>
   </div>
 
-  <div id="message" class="mb-4 text-xl"></div>
+  <div id="score" class="mb-2 text-xl">Score: 0</div>
+  <div id="message" class="mb-4 text-lg">Press Start to begin</div>
 
-  <div id="board" class="grid grid-cols-2 gap-4 max-w-md mx-auto">
-    <div class="game-tile" data-id="0">🐶</div>
-    <div class="game-tile" data-id="1">🐱</div>
-    <div class="game-tile" data-id="2">🐰</div>
-    <div class="game-tile" data-id="3">🦊</div>
+  <div id="board" class="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+    <div class="game-tile" data-id="0"><div>🐶</div><div class="text-xs">Dog</div></div>
+    <div class="game-tile" data-id="1"><div>🐱</div><div class="text-xs">Cat</div></div>
+    <div class="game-tile" data-id="2"><div>🐰</div><div class="text-xs">Rabbit</div></div>
+    <div class="game-tile" data-id="3"><div>🦊</div><div class="text-xs">Fox</div></div>
   </div>
 </div>
 
@@ -84,26 +85,30 @@ const themeSelect = document.getElementById('themeSelect');
 const contrastBtn = document.getElementById('contrastBtn');
 const soundBtn = document.getElementById('soundBtn');
 const calmBtn = document.getElementById('calmBtn');
+const scoreElem = document.getElementById('score');
 const body = document.body;
 
 const sounds = ['C4', 'E4', 'G4', 'B4'];
 let sequence = [], playerSequence = [], level = 0, turn = false;
-let soundOn = true, calmMode = false;
+let score = 0, soundOn = true, calmMode = false;
 
 const synths = [new Tone.Synth().toDestination(), new Tone.Synth().toDestination(),
   new Tone.Synth().toDestination(), new Tone.Synth().toDestination()];
 
 const themes = {
-  grass: ['🐶', '🐱', '🐰', '🦊'],
-  space: ['🪐', '👽', '🚀', '🌟'],
-  beach: ['🐚', '🦀', '🏝️', '🌊'],
-  fruit: ['🍎', '🍌', '🍇', '🍉']
+  grass: [['🐶','Dog'],['🐱','Cat'],['🐰','Rabbit'],['🦊','Fox']],
+  space: [['🪐','Planet'],['👽','Alien'],['🚀','Rocket'],['🌟','Star']],
+  beach: [['🐚','Shell'],['🦀','Crab'],['🏝️','Island'],['🌊','Wave']],
+  fruit: [['🍎','Apple'],['🍌','Banana'],['🍇','Grapes'],['🍉','Watermelon']]
 };
 
 themeSelect.addEventListener('change', () => {
   const theme = themeSelect.value;
-  body.className = `theme-${theme} flex items-center justify-center min-h-screen`;
-  tiles.forEach((tile, i) => tile.textContent = themes[theme][i]);
+  body.className = `bg-${theme} flex items-center justify-center min-h-screen`;
+  tiles.forEach((tile, i) => {
+    tile.children[0].textContent = themes[theme][i][0];
+    tile.children[1].textContent = themes[theme][i][1];
+  });
 });
 
 contrastBtn.addEventListener('click', () => {
@@ -126,15 +131,24 @@ function sleep(ms) {
 
 async function startGame() {
   sequence = [];
+  playerSequence = [];
   level = 0;
+  score = 0;
+  updateScore();
   startBtn.disabled = true;
   nextLevel();
+}
+
+function updateScore() {
+  scoreElem.textContent = `Score: ${score}`;
 }
 
 async function nextLevel() {
   turn = false;
   playerSequence = [];
   level++;
+  score += 10;
+  updateScore();
   message.textContent = `Level ${level}`;
   sequence.push(Math.floor(Math.random() * 4));
   await playSequence();
@@ -145,7 +159,7 @@ async function nextLevel() {
 async function playSequence() {
   for (const idx of sequence) {
     await glowTile(idx);
-    await sleep(calmMode ? 600 : 300);
+    await sleep(calmMode ? 700 : 300);
   }
 }
 
@@ -158,15 +172,16 @@ async function glowTile(idx) {
 
 board.addEventListener('click', async (e) => {
   if (!turn) return;
-  const id = parseInt(e.target.dataset.id);
-  if (isNaN(id)) return;
+  const tile = e.target.closest('.game-tile');
+  if (!tile) return;
 
+  const id = parseInt(tile.dataset.id);
   await glowTile(id);
   playerSequence.push(id);
 
   const i = playerSequence.length - 1;
   if (playerSequence[i] !== sequence[i]) {
-    message.textContent = 'Wrong! Try again!';
+    message.textContent = `Wrong! Final Score: ${score}`;
     startBtn.disabled = false;
     turn = false;
     return;
