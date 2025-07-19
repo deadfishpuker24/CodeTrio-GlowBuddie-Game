@@ -87,7 +87,123 @@
 </div>
 
 <script>
-// your original script stays unchanged
+const startBtn = document.getElementById('startBtn');
+const board = document.getElementById('board');
+const message = document.getElementById('message');
+const tiles = document.querySelectorAll('.game-tile');
+const themeSelect = document.getElementById('themeSelect');
+const contrastBtn = document.getElementById('contrastBtn');
+const soundBtn = document.getElementById('soundBtn');
+const calmBtn = document.getElementById('calmBtn');
+const scoreElem = document.getElementById('score');
+const body = document.body;
+
+const sounds = ['C4', 'E4', 'G4', 'B4'];
+let sequence = [], playerSequence = [], level = 0, turn = false;
+let score = 0, soundOn = true, calmMode = false;
+
+const synths = [new Tone.Synth().toDestination(), new Tone.Synth().toDestination(),
+  new Tone.Synth().toDestination(), new Tone.Synth().toDestination()];
+
+const themes = {
+  grass: [['🐶','Dog'],['🐱','Cat'],['🐰','Rabbit'],['🦊','Fox']],
+  space: [['🪐','Planet'],['👽','Alien'],['🚀','Rocket'],['🌟','Star']],
+  beach: [['🐚','Shell'],['🦀','Crab'],['🏝️','Island'],['🌊','Wave']],
+  fruit: [['🍎','Apple'],['🍌','Banana'],['🍇','Grapes'],['🍉','Watermelon']]
+};
+
+themeSelect.addEventListener('change', () => {
+  const theme = themeSelect.value;
+  body.className = `bg-${theme} flex items-center justify-center min-h-screen${body.classList.contains('contrast-on') ? ' contrast-on' : ''}`;
+  tiles.forEach((tile, i) => {
+    tile.children[0].textContent = themes[theme][i][0];
+    tile.children[1].textContent = themes[theme][i][1];
+  });
+});
+
+contrastBtn.addEventListener('click', () => {
+  body.classList.toggle('contrast-on');
+});
+
+soundBtn.addEventListener('click', () => {
+  soundOn = !soundOn;
+  soundBtn.textContent = `Sound: ${soundOn ? 'On' : 'Off'}`;
+});
+
+calmBtn.addEventListener('click', () => {
+  calmMode = !calmMode;
+  calmBtn.textContent = `Calm: ${calmMode ? 'On' : 'Off'}`;
+});
+
+function sleep(ms) {
+  return new Promise(res => setTimeout(res, ms));
+}
+
+async function startGame() {
+  sequence = [];
+  playerSequence = [];
+  level = 0;
+  score = 0;
+  updateScore();
+  startBtn.disabled = true;
+  nextLevel();
+}
+
+function updateScore() {
+  scoreElem.textContent = `Score: ${score}`;
+}
+
+async function nextLevel() {
+  turn = false;
+  playerSequence = [];
+  level++;
+  score += 10;
+  updateScore();
+  message.textContent = `Level ${level}`;
+  sequence.push(Math.floor(Math.random() * 4));
+  await playSequence();
+  turn = true;
+  message.textContent = `Your turn!`;
+}
+
+async function playSequence() {
+  for (const idx of sequence) {
+    await glowTile(idx);
+    await sleep(calmMode ? 700 : 300);
+  }
+}
+
+async function glowTile(idx) {
+  tiles[idx].classList.add('active-glow');
+  if (soundOn) synths[idx].triggerAttackRelease(sounds[idx], '8n');
+  await sleep(calmMode ? 700 : 400);
+  tiles[idx].classList.remove('active-glow');
+}
+
+board.addEventListener('click', async (e) => {
+  if (!turn) return;
+  const tile = e.target.closest('.game-tile');
+  if (!tile) return;
+  const id = parseInt(tile.dataset.id);
+  await glowTile(id);
+  playerSequence.push(id);
+  const i = playerSequence.length - 1;
+  if (playerSequence[i] !== sequence[i]) {
+    message.textContent = `Wrong! Final Score: ${score}`;
+    startBtn.disabled = false;
+    turn = false;
+    return;
+  }
+  if (playerSequence.length === sequence.length) {
+    await sleep(500);
+    nextLevel();
+  }
+});
+
+startBtn.addEventListener('click', () => {
+  Tone.start();
+  startGame();
+});
 </script>
 </body>
 </html>
